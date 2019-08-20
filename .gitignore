@@ -268,6 +268,7 @@ dmypy.json
 .pyre/
 
 ### VisualStudioCode ###
+.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -653,3 +654,5 @@ healthchecksdb
 MigrationBackup/
 
 # End of https://www.gitignore.io/api/linux,macos,python,windows,pycharm+all,visualstudio,visualstudiocode,jupyternotebooks
+
+.environment

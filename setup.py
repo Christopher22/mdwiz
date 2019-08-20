@@ -20,4 +20,10 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/Christopher22/mdwiz",
     install_requires=required_packages,
+    packages=setuptools.find_packages(),
+    entry_points={
+          'console_scripts': [
+              'mdwiz = mdwiz.__main__:main'
+          ]
+      },
 )

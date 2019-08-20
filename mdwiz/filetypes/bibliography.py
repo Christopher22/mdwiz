@@ -1,8 +1,6 @@
-from typing import Sequence
-
 from . import FileType
 
 
 class Bibliography(FileType):
-    def file_extensions(self) -> Sequence[str]:
-        return "bib"
+    def __init__(self):
+        super().__init__("bib")

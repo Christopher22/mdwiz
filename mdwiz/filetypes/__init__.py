@@ -3,6 +3,9 @@ from typing import Sequence, Optional
 
 
 class FileType:
+    def __init__(self, *args):
+        self.extensions = tuple(args)
+
     def locate_files(
         self, root: Path, reference_file: Optional[Path] = None, recursive: bool = True
     ) -> Sequence[Path]:
@@ -29,4 +32,4 @@ class FileType:
         return f"No file matching the required type for {self.__class__.__name__} was found."
 
     def file_extensions(self) -> Sequence[str]:
-        raise NotImplementedError()
+        return self.extensions

@@ -1,11 +1,9 @@
-from typing import Sequence
-
 from . import FileType
 
 
 class Markdown(FileType):
-    def file_extensions(self) -> Sequence[str]:
-        return (
+    def __init__(self, *args):
+        super().__init__(
             "markdown",
             "mdown",
             "mkdn",

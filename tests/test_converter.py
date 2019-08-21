@@ -23,10 +23,11 @@ class TestConverter(FileSystemUnitTest):
         result = converter.convert()
         self.assertIn("\section{A test.}", result)
 
-    def test_bibliography(self):
+    def test_citations(self):
         converter = Converter(self.asset_document, self.asset_bibliography)
         result = converter.convert()
-        self.assertIn(r"\autocite{gundler}", result)
+        self.assertIn(r"\textcite{gundler}", result)
+        self.assertIn(r"\autocite{doe}", result)
 
 
 if __name__ == "__main__":

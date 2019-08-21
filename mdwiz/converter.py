@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 import logging
 import tempfile
+from shlex import quote
 
 import pypandoc
 
@@ -26,12 +27,12 @@ class Converter:
         # Add citation processing
         if self.citation_file is not None:
             additional_parameters.append("--biblatex")
-            additional_parameters.append(f'--bibliography="{self.citation_file}"')
+            additional_parameters.append(f"--bibliography={quote(self.citation_file)}")
 
         # Add custom template
         additional_parameters.append("-s")
         if self.template_file is not None:
-            additional_parameters.append(f'--template="{self.template_file}"')
+            additional_parameters.append(f"--template={quote(self.template_file)}")
 
         with tempfile.TemporaryDirectory() as tmp_dir:
             output_file = Path(tmp_dir) / "output.tex"
@@ -54,5 +55,5 @@ class Converter:
         # Make files relative to the folder rather to the file
         if reference_path.is_file():
             reference_path = reference_path.parent
-        
+
         return str(input_path.relative_to(reference_path))

@@ -4,11 +4,12 @@ from pathlib import Path
 
 from mdwiz.filetypes import FileType
 
+from util import FileSystemUnitTest
 
-class TestFileTypes(unittest.TestCase):
+
+class TestFileTypes(FileSystemUnitTest):
     def setUp(self):
-        self._tmp_directory_handle = tempfile.TemporaryDirectory()
-        self.test_directory = Path(self._tmp_directory_handle.name)
+        super().setUp()
 
         # Add a valid file into the root
         (self.test_directory / "a.example").touch()
@@ -50,9 +51,6 @@ class TestFileTypes(unittest.TestCase):
             ),
             1,
         )
-
-    def tearDown(self):
-        self._tmp_directory_handle.cleanup()
 
 
 if __name__ == "__main__":

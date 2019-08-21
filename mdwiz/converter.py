@@ -10,15 +10,15 @@ class Converter:
     def __init__(
         self,
         markdown_file: Path,
-        citation_file: Optional[Path],
-        template_file: Optional[Path],
+        citation_file: Optional[Path] = None,
+        template_file: Optional[Path] = None,
     ):
         if not markdown_file.is_file():
             raise ValueError("Markdown file does not exists!")
 
         self.markdown_file = str(markdown_file.absolute())
-        self.citation_file = Converter._prepare_path(citation_file)
-        self.template_file = Converter._prepare_path(template_file)
+        self.citation_file = Converter._prepare_path(citation_file, markdown_file)
+        self.template_file = Converter._prepare_path(template_file, markdown_file)
 
     def convert(self, *args) -> str:
         additional_parameters = list(*args)
@@ -45,7 +45,14 @@ class Converter:
             return output_file.read_text()
 
     @staticmethod
-    def _prepare_path(input_path: Optional[Path]) -> Optional[str]:
+    def _prepare_path(
+        input_path: Optional[Path], reference_path: Path
+    ) -> Optional[str]:
         if input_path is None or not input_path.is_file():
             return None
-        return str(input_path.absolute())
+
+        # Make files relative to the folder rather to the file
+        if reference_path.is_file():
+            reference_path = reference_path.parent
+        
+        return str(input_path.relative_to(reference_path))

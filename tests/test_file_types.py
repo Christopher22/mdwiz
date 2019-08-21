@@ -12,11 +12,13 @@ class TestFileTypes(unittest.TestCase):
 
         # Add a valid file into the root
         (self.test_directory / "a.example").touch()
+        (self.test_directory / "a.second_example").touch()
 
         # Add a valid file to a nested directory
         nested_directory = self.test_directory / "nested_directory"
         nested_directory.mkdir()
         (nested_directory / "b.example").touch()
+        (nested_directory / "b.second_example").touch()
 
         # Add rubbish
         (self.test_directory / "rubbi.sh").touch()
@@ -29,6 +31,24 @@ class TestFileTypes(unittest.TestCase):
         )
         self.assertEqual(
             len(example_filetype.locate_files(self.test_directory, recursive=True)), 2
+        )
+
+    def test_reference_file(self):
+        example_filetype = FileType("second_example")
+
+        self.assertEqual(
+            len(example_filetype.locate_files(self.test_directory, recursive=True)), 2
+        )
+
+        self.assertEqual(
+            len(
+                example_filetype.locate_files(
+                    self.test_directory,
+                    reference_file=(self.test_directory / "a.example"),
+                    recursive=True,
+                )
+            ),
+            1,
         )
 
     def tearDown(self):

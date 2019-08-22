@@ -21,7 +21,7 @@ class TestConverter(FileSystemUnitTest):
     def test_convert(self):
         converter = Converter(self.asset_document)
         result = converter.convert()
-        self.assertIn("\section{A test.}", result)
+        self.assertIn("\section{Chapter 1}", result)
 
     def test_citations(self):
         converter = Converter(self.asset_document, self.asset_bibliography)

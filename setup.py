@@ -1,5 +1,7 @@
 import setuptools
 
+from mdwiz import DESCRIPTION
+
 # Create the long description for README
 with open("README.md", "r") as fh:
     long_description = fh.read()
@@ -15,7 +17,7 @@ setuptools.setup(
     version="0.0.1",
     author="Christopher Gundler",
     author_email="christopher@gundler.de",
-    description="A helper for creating complex documents in Markdown",
+    description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/Christopher22/mdwiz",

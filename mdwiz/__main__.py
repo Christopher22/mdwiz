@@ -56,8 +56,8 @@ def get_file(
         logging.info(f"Using '{given_file}' as {file_type.__class__.__name__} file.")
         return given_file
 
-    # Find all the files of interest
-    files = file_type.locate_files(Path.cwd(), **kwargs)
+    # Find all the files of interest which are bigger than 5 bytes
+    files = file_type.locate_files(Path.cwd(), min_size=5, **kwargs)
 
     if len(files) == 0:
         # Fail if a required filetype is not found, otherwise print an warning

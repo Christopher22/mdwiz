@@ -7,8 +7,13 @@ class FileType:
         self.extensions = tuple(args)
 
     def locate_files(
-        self, root: Path, reference_file: Optional[Path] = None, recursive: bool = True
+        self,
+        root: Path,
+        reference_file: Optional[Path] = None,
+        recursive: bool = True,
+        min_size: int = 0,
     ) -> Sequence[Path]:
+
         # Generate all the candidate files
         candidates = []
         for extension in self.file_extensions():
@@ -16,6 +21,13 @@ class FileType:
             candidates.extend(
                 root.rglob(extension) if recursive else root.glob(extension)
             )
+
+        # Filter out files by their size, i.e. to allow the redirection of a 'tex' file not being accidently parsed as template.
+        candidates = [
+            candidate
+            for candidate in candidates
+            if candidate.stat().st_size >= min_size
+        ]
 
         # If more than one candiate is availailable, try to find its stem
         if len(candidates) > 1 and reference_file is not None:

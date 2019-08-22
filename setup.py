@@ -14,7 +14,7 @@ with open("requirements.txt", "r") as f:
 
 setuptools.setup(
     name="mdwiz",
-    version="0.0.1",
+    version="0.0.2",
     author="Christopher Gundler",
     author_email="christopher@gundler.de",
     description=DESCRIPTION,

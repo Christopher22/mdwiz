@@ -15,10 +15,13 @@ class TestFileTypes(FileSystemUnitTest):
         (self.test_directory / "a.example").touch()
         (self.test_directory / "a.second_example").touch()
 
-        # Add a valid file to a nested directory
+        # Add files to a nested directory
         nested_directory = self.test_directory / "nested_directory"
         nested_directory.mkdir()
-        (nested_directory / "b.example").touch()
+
+        b_example = nested_directory / "b.example"
+        b_example.touch()
+        b_example.write_text("This is an example!")
         (nested_directory / "b.second_example").touch()
 
         # Add rubbish
@@ -47,6 +50,22 @@ class TestFileTypes(FileSystemUnitTest):
                     self.test_directory,
                     reference_file=(self.test_directory / "a.example"),
                     recursive=True,
+                )
+            ),
+            1,
+        )
+
+    def test_filesize_threshold(self):
+        example_filetype = FileType("example")
+
+        self.assertEqual(
+            len(example_filetype.locate_files(self.test_directory, recursive=True)), 2
+        )
+
+        self.assertEqual(
+            len(
+                example_filetype.locate_files(
+                    self.test_directory, recursive=True, min_size=5
                 )
             ),
             1,

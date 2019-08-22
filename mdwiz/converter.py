@@ -1,48 +1,79 @@
-from pathlib import Path
-from typing import Optional, Sequence
 import logging
+import subprocess
 import tempfile
+from collections.abc import MutableSet
+from pathlib import Path
 from shlex import quote
+from typing import Optional, Sequence
 
-import pypandoc
 
+class Converter(MutableSet):
+    class PandocException(Exception):
+        def __init__(self, msg: str, status_code: int):
+            super().__init__(msg)
+            self.status_code = status_code
 
-class Converter:
     def __init__(
         self,
         markdown_file: Path,
         citation_file: Optional[Path] = None,
         template_file: Optional[Path] = None,
     ):
+        self._parameters = set()
+
         if not markdown_file.is_file():
             raise ValueError("Markdown file does not exists!")
-
         self.markdown_file = str(markdown_file.absolute())
-        self.citation_file = Converter._prepare_path(citation_file, markdown_file)
-        self.template_file = Converter._prepare_path(template_file, markdown_file)
 
-    def convert(self, *args) -> str:
-        additional_parameters = list(*args)
+        self.add("--from=markdown+smart+tex_math_dollars")
+        self.add("--to=latex")
+        self.add("--standalone")
 
         # Add citation processing
+        self.citation_file = Converter._prepare_path(citation_file, markdown_file)
         if self.citation_file is not None:
-            additional_parameters.append("--biblatex")
-            additional_parameters.append(f"--bibliography={quote(self.citation_file)}")
+            self.add("--biblatex")
+            self.add(f"--bibliography={quote(self.citation_file)}")
 
         # Add custom template
-        additional_parameters.append("-s")
+        self.template_file = Converter._prepare_path(template_file, markdown_file)
         if self.template_file is not None:
-            additional_parameters.append(f"--template={quote(self.template_file)}")
+            self.add(f"--template={quote(self.template_file)}")
 
+    def __contains__(self, value: str):
+        return value in self._parameters
+
+    def __iter__(self):
+        return iter(self._parameters)
+
+    def __len__(self):
+        return len(self._parameters)
+
+    def add(self, value: str):
+        self._parameters.add(value)
+
+    def discard(self, value: str):
+        self._parameters.discard(value)
+
+    def convert(self) -> str:
         with tempfile.TemporaryDirectory() as tmp_dir:
             output_file = Path(tmp_dir) / "output.tex"
-            pypandoc.convert_file(
-                str(self.markdown_file),
-                "latex",
-                format="md",
-                outputfile=str(output_file),
-                extra_args=additional_parameters,
+            result = subprocess.run(
+                [
+                    "pandoc",
+                    *tuple(self._parameters),
+                    "-o",
+                    str(output_file),
+                    str(self.markdown_file),
+                ],
+                capture_output=True,
+                shell=False,
+                text=True,
             )
+
+            if result.returncode != 0:
+                raise Converter.PandocException(result.stderr, result.returncode)
+
             return output_file.read_text()
 
     @staticmethod

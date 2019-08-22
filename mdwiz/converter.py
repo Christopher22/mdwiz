@@ -29,7 +29,8 @@ class Converter(MutableSet):
         self.add("--from=markdown+smart+tex_math_dollars")
         self.add("--to=latex")
         self.add("--standalone")
-
+        self.add("--listings")
+        
         # Add citation processing
         self.citation_file = Converter._prepare_path(citation_file, markdown_file)
         if self.citation_file is not None:

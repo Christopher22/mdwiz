@@ -1,6 +1,7 @@
 import logging
 import subprocess
 import tempfile
+import shutil
 from collections.abc import MutableSet
 from pathlib import Path
 from shlex import quote
@@ -88,3 +89,7 @@ class Converter(MutableSet):
             reference_path = reference_path.parent
 
         return str(input_path.relative_to(reference_path))
+
+    @staticmethod
+    def is_available() -> bool:
+        return shutil.which("pandoc") is not None

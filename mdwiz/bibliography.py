@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Set
+import shutil
 import subprocess
 import json
 import re
@@ -34,3 +35,7 @@ class Bibliography(dict):
             parsed_data = json.loads(parsed_data.stdout)
 
         return Bibliography([(citation["id"], citation) for citation in parsed_data])
+
+    @staticmethod
+    def is_available() -> bool:
+        return shutil.which("pandoc-citeproc") is not None

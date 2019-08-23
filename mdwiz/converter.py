@@ -5,7 +5,11 @@ import shutil
 from collections.abc import MutableSet
 from pathlib import Path
 from shlex import quote
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Set
+import warnings
+
+
+from mdwiz.bibliography import Bibliography
 
 
 class Converter(MutableSet):
@@ -13,6 +17,22 @@ class Converter(MutableSet):
         def __init__(self, msg: str, status_code: int):
             super().__init__(msg)
             self.status_code = status_code
+
+    class MissingReferenceWarning(RuntimeWarning):
+        def __init__(self, missing_references: Set[str]):
+            super().__init__()
+            self.missing_references = missing_references
+
+        def __str__(self):
+            return f"Missing references: {', '.join(self.missing_references)}"
+
+        @staticmethod
+        def check_references(citation_file: Path, latex_code: str):
+            bibliography = Bibliography.from_file(citation_file)
+            missing_references = bibliography.find_missing_citations(latex_code)
+
+            if len(missing_references) > 0:
+                warnings.warn(Converter.MissingReferenceWarning(missing_references))
 
     def __init__(
         self,
@@ -30,7 +50,7 @@ class Converter(MutableSet):
         self.add("--to=latex")
         self.add("--standalone")
         self.add("--listings")
-        
+
         # Add citation processing
         self.citation_file = Converter._prepare_path(citation_file, markdown_file)
         if self.citation_file is not None:
@@ -75,8 +95,15 @@ class Converter(MutableSet):
 
             if result.returncode != 0:
                 raise Converter.PandocException(result.stderr, result.returncode)
+            latex_output = output_file.read_text()
 
-            return output_file.read_text()
+            # Check references, if specified
+            if self.citation_file is not None:
+                Converter.MissingReferenceWarning.check_references(
+                    self.citation_file, latex_output
+                )
+
+            return latex_output
 
     @staticmethod
     def _prepare_path(

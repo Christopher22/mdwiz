@@ -4,6 +4,7 @@ from typing import Optional
 from enum import Enum
 import logging
 import argparse
+import warnings
 
 import pyperclip
 
@@ -79,10 +80,12 @@ def get_file(
 
 
 def main() -> StatusCode:
-    # Configure the general output format
+    # Configure the general output format and warnings
     logging.basicConfig(
-        stream=sys.stderr, format="[%(levelname)s]\t%(message)s", level=logging.DEBUG
+        stream=sys.stderr, format="[%(levelname)s] %(message)s", level=logging.DEBUG
     )
+    logging.captureWarnings(True)
+    warnings.formatwarning = lambda message, category, filename, lineno, line: message
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(

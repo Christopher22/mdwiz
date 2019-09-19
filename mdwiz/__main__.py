@@ -31,7 +31,7 @@ class StatusCode(Enum):
 
 
 class MdwizRuntimeError(Exception):
-    def __init__(code: StatusCode, msg: str):
+    def __init__(self, code: StatusCode, msg: str):
         assert code != StatusCode.Success, "Could not throw error on success"
         super().__init__(msg)
         self.msg = msg

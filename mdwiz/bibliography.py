@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Set
+from typing import Set, Union
 import shutil
 import subprocess
 import json
@@ -21,7 +21,7 @@ class Bibliography(dict):
         }
 
     @staticmethod
-    def from_file(bibliography: Path) -> "Bibliography":
+    def from_file(bibliography: Union[Path, str]) -> "Bibliography":
         parsed_data = subprocess.run(
             ["pandoc-citeproc", "--bib2json", str(bibliography)],
             capture_output=True,

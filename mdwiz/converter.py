@@ -1,18 +1,17 @@
-import logging
 import subprocess
 import tempfile
 import shutil
-from collections.abc import MutableSet
+from collections.abc import MutableSequence
 from pathlib import Path
 from shlex import quote
-from typing import Optional, Sequence, Set
+from typing import Optional, Set, Union
 import warnings
 
 
 from mdwiz.bibliography import Bibliography
 
 
-class Converter(MutableSet):
+class Converter(MutableSequence):
     class PandocException(Exception):
         def __init__(self, msg: str, status_code: int):
             super().__init__(msg)
@@ -27,7 +26,7 @@ class Converter(MutableSet):
             return f"Missing references: {', '.join(self.missing_references)}"
 
         @staticmethod
-        def check_references(citation_file: Path, latex_code: str):
+        def check_references(citation_file: Union[Path, str], latex_code: str):
             bibliography = Bibliography.from_file(citation_file)
             missing_references = bibliography.find_missing_citations(latex_code)
 
@@ -40,27 +39,28 @@ class Converter(MutableSet):
         citation_file: Optional[Path] = None,
         template_file: Optional[Path] = None,
     ):
-        self._parameters = set()
+        self._parameters = [
+            "--from=markdown+smart+tex_math_dollars",
+            "--to=latex",
+            "--standalone",
+            "--listings",
+            "--filter pandoc-xnos",
+        ]
 
         if not markdown_file.is_file():
             raise ValueError("Markdown file does not exists!")
         self.markdown_file = str(markdown_file.absolute())
 
-        self.add("--from=markdown+smart+tex_math_dollars")
-        self.add("--to=latex")
-        self.add("--standalone")
-        self.add("--listings")
-
         # Add citation processing
         self.citation_file = Converter._prepare_path(citation_file, markdown_file)
         if self.citation_file is not None:
-            self.add("--biblatex")
-            self.add(f"--bibliography={quote(self.citation_file)}")
+            self.append("--biblatex")
+            self.append(f"--bibliography={quote(self.citation_file)}")
 
         # Add custom template
         self.template_file = Converter._prepare_path(template_file, markdown_file)
         if self.template_file is not None:
-            self.add(f"--template={quote(self.template_file)}")
+            self.append(f"--template={quote(self.template_file)}")
 
     def __contains__(self, value: str):
         return value in self._parameters
@@ -71,11 +71,11 @@ class Converter(MutableSet):
     def __len__(self):
         return len(self._parameters)
 
-    def add(self, value: str):
-        self._parameters.add(value)
+    def __getitem__(self, item: int) -> str:
+        return self._parameters[item]
 
-    def discard(self, value: str):
-        self._parameters.discard(value)
+    def __setitem__(self, key: int, value: str):
+        self._parameters[key] = value
 
     def convert(self) -> str:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -83,7 +83,7 @@ class Converter(MutableSet):
             result = subprocess.run(
                 [
                     "pandoc",
-                    *tuple(self._parameters),
+                    *self._parameters,
                     "-o",
                     str(output_file),
                     str(self.markdown_file),

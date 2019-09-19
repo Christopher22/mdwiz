@@ -45,6 +45,7 @@ class Converter(MutableSequence):
             "--standalone",
             "--listings",
             "--filter pandoc-xnos",
+            "--filter pantable"
         ]
 
         if not markdown_file.is_file():

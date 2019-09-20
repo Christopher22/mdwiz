@@ -44,8 +44,8 @@ class Converter(MutableSequence):
             "--to=latex",
             "--standalone",
             "--listings",
-            "--filter pandoc-xnos",
-            "--filter pantable"
+            "--filter=pandoc-xnos",
+            "--filter=pantable"
         ]
 
         if not markdown_file.is_file():
@@ -77,6 +77,12 @@ class Converter(MutableSequence):
 
     def __setitem__(self, key: int, value: str):
         self._parameters[key] = value
+
+    def __delitem__(self, key: int):
+        del self._parameters[key]
+
+    def insert(self, index: int, element: str):
+        self._parameters.insert(index, element)
 
     def convert(self) -> str:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -112,12 +118,7 @@ class Converter(MutableSequence):
     ) -> Optional[str]:
         if input_path is None or not input_path.is_file():
             return None
-
-        # Make files relative to the folder rather to the file
-        if reference_path.is_file():
-            reference_path = reference_path.parent
-
-        return str(input_path.relative_to(reference_path))
+        return str(input_path.absolute())
 
     @staticmethod
     def is_available() -> bool:

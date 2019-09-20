@@ -23,9 +23,5 @@ setuptools.setup(
     url="https://github.com/Christopher22/mdwiz",
     install_requires=required_packages,
     packages=setuptools.find_packages(),
-    entry_points={
-          'console_scripts': [
-              'mdwiz = mdwiz.__main__:main'
-          ]
-      },
+    entry_points={"console_scripts": ["mdwiz = mdwiz.__main__:main"]},
 )

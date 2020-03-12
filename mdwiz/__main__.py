@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 import warnings
 from enum import Enum
@@ -106,6 +107,13 @@ def main() -> StatusCode:
         help="An optional bibliography for the output. If not specified, it is determined automatically.",
         type=str,
     )
+    parser.add_argument(
+        "--output",
+        help="An explicit output file to write. Usefull on Microsoft Windows, because the console migjht otherwise fail on UTF-8 data.",
+        type=str,
+        default="",
+    )
+
     arguments = parser.parse_args()
 
     # Check dependencies
@@ -144,10 +152,20 @@ def main() -> StatusCode:
         return StatusCode.PandocError
 
     # Copy the converted file to the clipboard if called correctly or write it into the command line pipeline.
-    if sys.stdout.isatty():
+    if len(arguments.output) > 0:
+        with Path(arguments.output).open("w", encoding="utf-8") as file:
+            file.write(converted_file)
+    elif sys.stdout.isatty():
         pyperclip.copy(converted_file)
     else:
-        print(converted_file)
+        try:
+            print(converted_file)
+        except UnicodeEncodeError:
+            # Some hacks for Windows to fix the bugs regarding IO
+            if os.name == "nt":
+                logging.warning(
+                    "Unable to output due to Windows console issue, use --output as bugfix. No output written."
+                )
 
     return StatusCode.Success
 

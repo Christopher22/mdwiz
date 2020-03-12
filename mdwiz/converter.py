@@ -57,12 +57,12 @@ class Converter(MutableSequence):
         self.citation_file = Converter._prepare_path(citation_file, markdown_file)
         if self.citation_file is not None:
             self.append("--biblatex")
-            self.append(f"--bibliography={quote(self.citation_file)}")
+            self.append(f"--bibliography={self.citation_file}")
 
         # Add custom template
         self.template_file = Converter._prepare_path(template_file, markdown_file)
         if self.template_file is not None:
-            self.append(f"--template={quote(self.template_file)}")
+            self.append(f"--template={self.template_file}")
 
     def __contains__(self, value: str):
         return value in self._parameters
@@ -103,7 +103,7 @@ class Converter(MutableSequence):
 
             if result.returncode != 0:
                 raise Converter.PandocException(result.stderr, result.returncode)
-            latex_output = output_file.read_text()
+            latex_output = output_file.read_text(encoding='utf-8')
 
             # Check references, if specified
             if self.citation_file is not None:

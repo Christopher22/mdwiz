@@ -1,19 +1,19 @@
+import argparse
+import logging
 import sys
+import warnings
+from enum import Enum
 from pathlib import Path
 from typing import Optional
-from enum import Enum
-import logging
-import argparse
-import warnings
 
 import pyperclip
 
 from mdwiz import NAME, DESCRIPTION
-from mdwiz.converter import Converter
 from mdwiz.bibliography import Bibliography
+from mdwiz.converter import Converter
 from mdwiz.filetypes import FileType
-from mdwiz.filetypes.markdown import Markdown
 from mdwiz.filetypes.bibliography import Bibliography as BibliographyFileType
+from mdwiz.filetypes.markdown import Markdown
 from mdwiz.filetypes.template import Template
 
 
@@ -149,6 +149,10 @@ def main() -> StatusCode:
     else:
         print(converted_file)
 
+    return StatusCode.Success
+
 
 if __name__ == "__main__":
-    sys.exit(int(main()))
+    result = main()
+    if result is not None:
+        sys.exit(result.value)

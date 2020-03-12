@@ -27,12 +27,13 @@ class Bibliography(dict):
             capture_output=True,
             shell=False,
             text=True,
+            encoding="utf-8",
         )
 
         if parsed_data.returncode != 0:
             raise RuntimeError(parsed_data.stderr)
         else:
-            parsed_data = json.loads(parsed_data.stdout)
+            parsed_data = json.loads(parsed_data.stdout, encoding="utf-8")
 
         return Bibliography([(citation["id"], citation) for citation in parsed_data])
 

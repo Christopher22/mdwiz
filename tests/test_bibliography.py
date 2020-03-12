@@ -22,13 +22,15 @@ class TestBibliography(FileSystemUnitTest):
     def test_ids(self):
         bibliography = Bibliography.from_file(self.asset_bibliography)
         self.assertCountEqual(
-            tuple(bibliography.keys()), ["gundler", "doe", "unused-doe"]
+            tuple(bibliography.keys()), ["gundler", "doe", "unused-doe", "a1", "a2"]
         )
 
     def test_find_references(self):
         converter = Converter(self.asset_document, self.asset_bibliography)
-        used_citations = Bibliography.used_citations(converter.convert())
-        self.assertCountEqual(used_citations, ["gundler", "doe", "unknown_reference"])
+        used_citations = frozenset(Bibliography.used_citations(converter.convert()))
+        self.assertCountEqual(
+            used_citations, ["gundler", "doe", "a1", "a2", "unknown_reference"]
+        )
 
     def test_find_missing_references(self):
         bibliography = Bibliography.from_file(self.asset_bibliography)

@@ -8,4 +8,4 @@ lang: "en-GB"
 
 # Chapter 1
 
-This is a test by @gundler, stated in [@doe]. There is even an @unknown_reference!
+This is a test by @gundler, stated in [@doe]. These are multiple authors [@a1; @a2]. There is even an @unknown_reference!

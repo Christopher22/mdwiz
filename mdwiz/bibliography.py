@@ -1,24 +1,24 @@
-from pathlib import Path
-from typing import Set, Union
-import shutil
-import subprocess
 import json
 import re
+import shutil
+import subprocess
+from pathlib import Path
+from typing import FrozenSet, Union, Iterable
 
 
 class Bibliography(dict):
-    def find_missing_citations(self, latex_code: str) -> Set[str]:
-        used_references = Bibliography.used_citations(latex_code)
+    def find_missing_citations(self, latex_code: str) -> FrozenSet[str]:
+        used_references = frozenset(Bibliography.used_citations(latex_code))
         available_references = frozenset(self.keys())
         return used_references.difference(available_references)
 
     @staticmethod
-    def used_citations(latex_code: str) -> Set[str]:
+    def used_citations(latex_code: str) -> Iterable[str]:
         citation_regex = re.compile(r"\\[a-z]+cite{([^}]+)")
-        return {
-            citation.group(1).strip()
-            for citation in citation_regex.finditer(latex_code)
-        }
+        for citation in citation_regex.finditer(latex_code):
+            citation = citation.group(1).strip()
+            for value in citation.split(","):
+                yield value.strip()
 
     @staticmethod
     def from_file(bibliography: Union[Path, str]) -> "Bibliography":

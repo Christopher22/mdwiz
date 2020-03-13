@@ -1,12 +1,10 @@
+import shutil
 import subprocess
 import tempfile
-import shutil
+import warnings
 from collections.abc import MutableSequence
 from pathlib import Path
-from shlex import quote
-from typing import Optional, Set, Union
-import warnings
-
+from typing import Optional, FrozenSet, Union
 
 from mdwiz.bibliography import Bibliography
 
@@ -18,7 +16,7 @@ class Converter(MutableSequence):
             self.status_code = status_code
 
     class MissingReferenceWarning(RuntimeWarning):
-        def __init__(self, missing_references: Set[str]):
+        def __init__(self, missing_references: FrozenSet[str]):
             super().__init__()
             self.missing_references = missing_references
 
@@ -26,8 +24,10 @@ class Converter(MutableSequence):
             return f"Missing references: {', '.join(self.missing_references)}"
 
         @staticmethod
-        def check_references(citation_file: Union[Path, str], latex_code: str):
-            bibliography = Bibliography.from_file(citation_file)
+        def check_references(
+            citation_file: Union[Path, str], latex_code: str, cwd: Optional[str] = None
+        ):
+            bibliography = Bibliography.from_file(citation_file, cwd=cwd)
             missing_references = bibliography.find_missing_citations(latex_code)
 
             if len(missing_references) > 0:
@@ -46,12 +46,12 @@ class Converter(MutableSequence):
             "--listings",
             "--filter=pandoc-xnos",
             "--filter=pantable",
-            "--table-of-contents"
+            "--table-of-contents",
         ]
 
         if not markdown_file.is_file():
             raise ValueError("Markdown file does not exists!")
-        self.markdown_file = str(markdown_file.absolute())
+        self.markdown_file = markdown_file.absolute()
 
         # Add citation processing
         self.citation_file = Converter._prepare_path(citation_file, markdown_file)
@@ -99,16 +99,17 @@ class Converter(MutableSequence):
                 capture_output=True,
                 shell=False,
                 text=True,
+                cwd=str(self.markdown_file.parent),
             )
 
             if result.returncode != 0:
                 raise Converter.PandocException(result.stderr, result.returncode)
-            latex_output = output_file.read_text(encoding='utf-8')
+            latex_output = output_file.read_text(encoding="utf-8")
 
             # Check references, if specified
             if self.citation_file is not None:
                 Converter.MissingReferenceWarning.check_references(
-                    self.citation_file, latex_output
+                    self.citation_file, latex_output, cwd=str(self.markdown_file.parent)
                 )
 
             return latex_output
@@ -119,7 +120,13 @@ class Converter(MutableSequence):
     ) -> Optional[str]:
         if input_path is None or not input_path.is_file():
             return None
-        return str(input_path.absolute())
+
+        try:
+            output_path = str(input_path.absolute().relative_to(reference_path.parent))
+        except ValueError:
+            output_path = str(input_path)
+
+        return output_path
 
     @staticmethod
     def is_available() -> bool:

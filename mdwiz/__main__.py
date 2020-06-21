@@ -36,7 +36,7 @@ class MdwizRuntimeError(Exception):
         assert code != StatusCode.Success, "Could not throw error on success"
         super().__init__(msg)
         self.msg = msg
-        self.status_code = code.value
+        self.status_code = code
 
     def log(self):
         logging.error(self.msg)

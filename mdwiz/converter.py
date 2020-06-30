@@ -25,7 +25,7 @@ class Converter(MutableSequence):
 
         @staticmethod
         def check_references(
-            citation_file: Union[Path, str], latex_code: str, cwd: Optional[str] = None
+                citation_file: Union[Path, str], latex_code: str, cwd: Optional[str] = None
         ):
             bibliography = Bibliography.from_file(citation_file, cwd=cwd)
             missing_references = bibliography.find_missing_citations(latex_code)
@@ -34,10 +34,11 @@ class Converter(MutableSequence):
                 warnings.warn(Converter.MissingReferenceWarning(missing_references))
 
     def __init__(
-        self,
-        markdown_file: Path,
-        citation_file: Optional[Path] = None,
-        template_file: Optional[Path] = None,
+            self,
+            markdown_file: Path,
+            citation_file: Optional[Path] = None,
+            template_file: Optional[Path] = None,
+            csl_file: Optional[Path] = None,
     ):
         self._parameters = [
             "--from=markdown+smart+tex_math_dollars",
@@ -52,11 +53,15 @@ class Converter(MutableSequence):
         if not markdown_file.is_file():
             raise ValueError("Markdown file does not exists!")
         self.markdown_file = markdown_file.absolute()
+        self.csl_file = csl_file
 
         # Add citation processing
         self.citation_file = Converter._prepare_path(citation_file, markdown_file)
         if self.citation_file is not None:
-            self.append("--biblatex")
+            if csl_file is not None:
+                self.append(f"--cls={self.csl_file}")
+            if Bibliography.get_type(self.citation_file) == Bibliography.BibType.BibTex:
+                self.append("--biblatex")
             self.append(f"--bibliography={self.citation_file}")
 
         # Add custom template
@@ -116,7 +121,7 @@ class Converter(MutableSequence):
 
     @staticmethod
     def _prepare_path(
-        input_path: Optional[Path], reference_path: Path
+            input_path: Optional[Path], reference_path: Path
     ) -> Optional[str]:
         if input_path is None or not input_path.is_file():
             return None

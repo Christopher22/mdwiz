@@ -14,6 +14,7 @@ from mdwiz.bibliography import Bibliography
 from mdwiz.converter import Converter
 from mdwiz.filetypes import FileType
 from mdwiz.filetypes.bibliography import Bibliography as BibliographyFileType
+from mdwiz.filetypes.csl import Csl
 from mdwiz.filetypes.markdown import Markdown
 from mdwiz.filetypes.template import Template
 
@@ -43,10 +44,10 @@ class MdwizRuntimeError(Exception):
 
 
 def get_file(
-    file_type: FileType,
-    given_file: Optional[str] = None,
-    required: bool = False,
-    **kwargs,
+        file_type: FileType,
+        given_file: Optional[str] = None,
+        required: bool = False,
+        **kwargs,
 ) -> Optional[Path]:
     # Check if the user has provided an file
     if given_file is not None:
@@ -109,7 +110,13 @@ def main() -> StatusCode:
     )
     parser.add_argument(
         "--output",
-        help="An explicit output file to write. Usefull on Microsoft Windows, because the console migjht otherwise fail on UTF-8 data.",
+        help="An explicit output file to write. Useful on Microsoft Windows, because the console might otherwise fail on UTF-8 data.",
+        type=str,
+        default="",
+    )
+    parser.add_argument(
+        "--csl",
+        help="A definition file for the Citation Style Language.",
         type=str,
         default="",
     )
@@ -139,6 +146,9 @@ def main() -> StatusCode:
             template_file=get_file(
                 Template(), given_file=arguments.template, reference_file=markdown_file
             ),
+            csl_file=get_file(
+                Csl(), given_file=arguments.csl, reference_file=markdown_file
+            )
         )
     except MdwizRuntimeError as runtime_error:
         runtime_error.log()
@@ -172,5 +182,5 @@ def main() -> StatusCode:
 
 if __name__ == "__main__":
     result = main()
-    if result is not None:
+    if result is not StatusCode.Success:
         sys.exit(result.value)

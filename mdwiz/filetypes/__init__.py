@@ -29,7 +29,7 @@ class FileType:
             if candidate.stat().st_size >= min_size
         ]
 
-        # If more than one candiate is availailable, try to find its stem
+        # If more than one candidate is available, try to find its stem
         if len(candidates) > 1 and reference_file is not None:
             for candidate in candidates:
                 if candidate.stem == reference_file.stem:
@@ -38,7 +38,7 @@ class FileType:
         return candidates
 
     def multiple_files_error_msg(self) -> str:
-        return f"Multiple suitable {self.__class__.__name__} files were found. Please specify explicitely."
+        return f"Multiple suitable {self.__class__.__name__} files were found. Please specify explicitly."
 
     def missing_file_error_msg(self) -> str:
         return f"No file matching the required type for {self.__class__.__name__} was found."

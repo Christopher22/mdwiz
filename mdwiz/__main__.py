@@ -50,7 +50,7 @@ def get_file(
         **kwargs,
 ) -> Optional[Path]:
     # Check if the user has provided an file
-    if given_file is not None:
+    if given_file is not None and len(given_file) > 0:
         given_file = Path.cwd() / given_file
         if not given_file.is_file():
             raise MdwizRuntimeError(

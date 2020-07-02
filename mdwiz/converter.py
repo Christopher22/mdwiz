@@ -59,7 +59,7 @@ class Converter(MutableSequence):
         self.citation_file = Converter._prepare_path(citation_file, markdown_file)
         if self.citation_file is not None:
             if csl_file is not None:
-                self.append(f"--cls={self.csl_file}")
+                self.append(f"--csl={self.csl_file}")
             if Bibliography.get_type(self.citation_file) == Bibliography.BibType.BibTex:
                 self.append("--biblatex")
             self.append(f"--bibliography={self.citation_file}")

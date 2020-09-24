@@ -1,10 +1,12 @@
+import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import warnings
 from collections.abc import MutableSequence
 from pathlib import Path
-from typing import Optional, FrozenSet, Union
+from typing import Optional, FrozenSet, Union, Sequence
 
 from mdwiz.bibliography import Bibliography
 
@@ -35,7 +37,7 @@ class Converter(MutableSequence):
 
     def __init__(
             self,
-            markdown_file: Path,
+            markdown_files: Sequence[Path],
             citation_file: Optional[Path] = None,
             template_file: Optional[Path] = None,
             csl_file: Optional[Path] = None,
@@ -50,13 +52,19 @@ class Converter(MutableSequence):
             "--table-of-contents",
         ]
 
-        if not markdown_file.is_file():
+        if len(markdown_files) == 0 or not all(
+                file.is_file() for file in markdown_files
+        ):
             raise ValueError("Markdown file does not exists!")
-        self.markdown_file = markdown_file.absolute()
+        self.markdown_files = [
+            file.absolute() for file in Converter._sort_files(markdown_files)
+        ]
         self.csl_file = csl_file
 
         # Add citation processing
-        self.citation_file = Converter._prepare_path(citation_file, markdown_file)
+        self.citation_file = Converter._prepare_path(
+            citation_file, self.markdown_files[0]
+        )
         if self.citation_file is not None:
             if csl_file is not None:
                 self.append(f"--csl={self.csl_file}")
@@ -65,7 +73,9 @@ class Converter(MutableSequence):
             self.append(f"--bibliography={self.citation_file}")
 
         # Add custom template
-        self.template_file = Converter._prepare_path(template_file, markdown_file)
+        self.template_file = Converter._prepare_path(
+            template_file, self.markdown_files[0]
+        )
         if self.template_file is not None:
             self.append(f"--template={self.template_file}")
 
@@ -99,12 +109,12 @@ class Converter(MutableSequence):
                     *self._parameters,
                     "-o",
                     str(output_file),
-                    str(self.markdown_file),
+                    *[str(file) for file in self.markdown_files],
                 ],
                 capture_output=True,
                 shell=False,
                 text=True,
-                cwd=str(self.markdown_file.parent),
+                cwd=str(self.markdown_files[0].parent),
             )
 
             if result.returncode != 0:
@@ -114,10 +124,16 @@ class Converter(MutableSequence):
             # Check references, if specified
             if self.citation_file is not None:
                 Converter.MissingReferenceWarning.check_references(
-                    self.citation_file, latex_output, cwd=str(self.markdown_file.parent)
+                    self.citation_file,
+                    latex_output,
+                    cwd=str(self.markdown_files[0].parent),
                 )
 
             return latex_output
+
+    @staticmethod
+    def is_available() -> bool:
+        return shutil.which("pandoc") is not None
 
     @staticmethod
     def _prepare_path(
@@ -134,5 +150,22 @@ class Converter(MutableSequence):
         return output_path
 
     @staticmethod
-    def is_available() -> bool:
-        return shutil.which("pandoc") is not None
+    def _sort_files(files: Sequence[Path]) -> Sequence[Path]:
+        """
+        Sort the given files if they start with a number.
+
+        >>> [f.stem for f in Converter._sort_files([Path('3_file'), Path('0-file'), Path('2 file'), Path('last file')])]
+        ['0-file', '2 file', '3_file', 'last file']
+
+        :param files: The files which
+        :return: The files sorted by their stem.
+        """
+        order_extractor = re.compile(r"^([0-9]+)")
+        ids = [order_extractor.match(file.stem) for file in files]
+        ids = [
+            int(detected_id[1]) if detected_id is not None else sys.maxsize
+            for detected_id in ids
+        ]
+
+        ids, files = zip(*sorted(zip(ids, files)))
+        return files

@@ -1,6 +1,4 @@
 import unittest
-import tempfile
-from pathlib import Path
 
 from mdwiz.bibliography import Bibliography
 from mdwiz.converter import Converter
@@ -26,7 +24,7 @@ class TestBibliography(FileSystemUnitTest):
         )
 
     def test_find_references(self):
-        converter = Converter(self.asset_document, self.asset_bibliography)
+        converter = Converter([self.asset_document], self.asset_bibliography)
         used_citations = frozenset(Bibliography.used_citations(converter.convert()))
         self.assertCountEqual(
             used_citations, ["gundler", "doe", "a1", "a2", "unknown_reference"]
@@ -34,7 +32,7 @@ class TestBibliography(FileSystemUnitTest):
 
     def test_find_missing_references(self):
         bibliography = Bibliography.from_file(self.asset_bibliography)
-        converter = Converter(self.asset_document, self.asset_bibliography)
+        converter = Converter([self.asset_document], self.asset_bibliography)
         missing_citations = bibliography.find_missing_citations(converter.convert())
         self.assertCountEqual(missing_citations, ["unknown_reference"])
 

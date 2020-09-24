@@ -1,6 +1,4 @@
 import unittest
-import tempfile
-from pathlib import Path
 
 from mdwiz.converter import Converter
 
@@ -19,12 +17,12 @@ class TestConverter(FileSystemUnitTest):
         )
 
     def test_convert(self):
-        converter = Converter(self.asset_document)
+        converter = Converter([self.asset_document])
         result = converter.convert()
-        self.assertIn("\section{Chapter 1}", result)
+        self.assertIn(r"\section{Chapter 1}", result)
 
     def test_citations(self):
-        converter = Converter(self.asset_document, self.asset_bibliography)
+        converter = Converter([self.asset_document], self.asset_bibliography)
         result = converter.convert()
         self.assertIn(r"\textcite{gundler}", result)
         self.assertIn(r"\autocite{doe}", result)

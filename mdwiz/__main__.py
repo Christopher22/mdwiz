@@ -5,7 +5,7 @@ import sys
 import warnings
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union, Sequence
 
 import pyperclip
 
@@ -47,8 +47,9 @@ def get_file(
         file_type: FileType,
         given_file: Optional[str] = None,
         required: bool = False,
+        multiple_files: bool = False,
         **kwargs,
-) -> Optional[Path]:
+) -> Optional[Union[Path, Sequence[Path]]]:
     # Check if the user has provided an file
     if given_file is not None and len(given_file) > 0:
         given_file = Path.cwd() / given_file
@@ -73,12 +74,14 @@ def get_file(
         return None
     elif len(files) == 1:
         logging.info(f"Using '{files[0]}' as {file_type.__class__.__name__} file.")
-        return files[0]
+        return files[0] if not multiple_files else files
     else:
-        # Fail if multiple files are possible
-        raise MdwizRuntimeError(
-            StatusCode.FileError, file_type.multiple_files_error_msg()
-        )
+        if not multiple_files:
+            # Fail if multiple files are possible
+            raise MdwizRuntimeError(
+                StatusCode.FileError, file_type.multiple_files_error_msg()
+            )
+        return files
 
 
 def main() -> StatusCode:
@@ -134,7 +137,11 @@ def main() -> StatusCode:
     try:
         # Load the files of interest and create a Converter object with them
         markdown_file = get_file(
-            Markdown(), given_file=arguments.markdown, required=True, recursive=False
+            Markdown(),
+            given_file=arguments.markdown,
+            required=True,
+            recursive=False,
+            multiple_files=True,
         )
         converter = Converter(
             markdown_file,
@@ -148,7 +155,7 @@ def main() -> StatusCode:
             ),
             csl_file=get_file(
                 Csl(), given_file=arguments.csl, reference_file=markdown_file
-            )
+            ),
         )
     except MdwizRuntimeError as runtime_error:
         runtime_error.log()

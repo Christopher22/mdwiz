@@ -19,9 +19,9 @@ class Bibliography(dict):
 
     @staticmethod
     def get_type(path: str) -> BibType:
-        if path.endswith('.json') or path.endswith('.js'):
+        if path.endswith(".json") or path.endswith(".js"):
             return Bibliography.BibType.Csl
-        elif path.endswith('.bib'):
+        elif path.endswith(".bib"):
             return Bibliography.BibType.BibTex
         else:
             raise ValueError("Unknown file extension")
@@ -43,7 +43,9 @@ class Bibliography(dict):
     def from_file(
             bibliography: Union[Path, str], cwd: Optional[str] = None
     ) -> "Bibliography":
-        bibliography = bibliography if isinstance(bibliography, Path) else Path(bibliography)
+        bibliography = (
+            bibliography if isinstance(bibliography, Path) else Path(bibliography)
+        )
         if bibliography.suffix == ".bib":
             parsed_data = subprocess.run(
                 ["pandoc-citeproc", "--bib2json", str(bibliography)],

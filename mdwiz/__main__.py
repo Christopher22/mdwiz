@@ -45,20 +45,27 @@ class MdwizRuntimeError(Exception):
 
 def get_file(
         file_type: FileType,
-        given_file: Optional[str] = None,
+        input: Union[None, str, Sequence[str]] = None,
         required: bool = False,
         multiple_files: bool = False,
         **kwargs,
 ) -> Optional[Union[Path, Sequence[Path]]]:
     # Check if the user has provided an file
-    if given_file is not None and len(given_file) > 0:
-        given_file = Path.cwd() / given_file
-        if not given_file.is_file():
-            raise MdwizRuntimeError(
-                StatusCode.FileError, f"Provided file '{given_file}' not found!"
-            )
-        logging.info(f"Using '{given_file}' as {file_type.__class__.__name__} file.")
-        return given_file
+    if input is not None and len(input) > 0:
+        if isinstance(input, str):
+            input = [input]
+
+        paths = []
+        for file in input:
+            file = Path.cwd() / file
+            if not file.is_file():
+                raise MdwizRuntimeError(
+                    StatusCode.FileError, f"Provided file '{input}' not found!"
+                )
+            logging.info(f"Using '{file}' as {file_type.__class__.__name__} file.")
+            paths.append(file)
+
+        return paths if multiple_files else paths[0]
 
     # Find all the files of interest which are bigger than 5 bytes
     files = file_type.locate_files(Path.cwd(), min_size=5, **kwargs)
@@ -97,9 +104,10 @@ def main() -> StatusCode:
         prog=NAME, description=DESCRIPTION, add_help=True, allow_abbrev=True
     )
     parser.add_argument(
-        "--markdown",
+        "markdown",
         help="The markdown file which should be converted. If not specified, it is determined automatically.",
         type=str,
+        nargs='*'
     )
     parser.add_argument(
         "--template",
@@ -138,7 +146,7 @@ def main() -> StatusCode:
         # Load the files of interest and create a Converter object with them
         markdown_file = get_file(
             Markdown(),
-            given_file=arguments.markdown,
+            input=arguments.markdown,
             required=True,
             recursive=False,
             multiple_files=True,
@@ -147,14 +155,14 @@ def main() -> StatusCode:
             markdown_file,
             citation_file=get_file(
                 BibliographyFileType(),
-                given_file=arguments.bibliography,
+                input=arguments.bibliography,
                 reference_file=markdown_file,
             ),
             template_file=get_file(
-                Template(), given_file=arguments.template, reference_file=markdown_file
+                Template(), input=arguments.template, reference_file=markdown_file
             ),
             csl_file=get_file(
-                Csl(), given_file=arguments.csl, reference_file=markdown_file
+                Csl(), input=arguments.csl, reference_file=markdown_file
             ),
         )
     except MdwizRuntimeError as runtime_error:

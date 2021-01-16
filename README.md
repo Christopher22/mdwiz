@@ -1,4 +1,5 @@
 # mdwiz
+## THIS PROJECT IS DEPRECATED: USE THE MORE FLEXIBLE [panwiz](https://github.com/Christopher22/panwiz) INSTEAD.
 **mdwiz** is a Python-based application for creating complex and scientific documents in Markdown, supporting advanced options like bibliographies and templates. It is designed as a smart wrapper around the amazing [pandoc](https://pandoc.org/), combining its powerfulness with a bunch of useful defaults and simplified use. It is primarily intended to help students in their writing of reports and theses by emphasizing a strict separation of content and presentation.
 
 ## Usage
